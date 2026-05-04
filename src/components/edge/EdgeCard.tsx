@@ -2,8 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { calculateKelly } from '../../hooks/useKelly';
 import type { Match } from '../../lib/mockData';
 import { EdgeIndicator } from '../features/EdgeIndicator';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 
 interface EdgeCardProps {
   match: Match;
