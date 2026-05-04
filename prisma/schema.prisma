@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String
+  bankroll    Decimal? @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  bets        Bet[]
+  predictions Prediction[]
+}
+
+model Match {
+  id          String       @id @default(cuid())
+  league      String
+  homeTeam    String
+  awayTeam    String
+  commenceAt  DateTime
+  odds        Decimal      @db.Decimal(8, 3)
+  predictions Prediction[]
+  bets        Bet[]
+  createdAt   DateTime     @default(now())
+}
+
+model Prediction {
+  id          String   @id @default(cuid())
+  userId      String
+  matchId     String
+  probability Decimal  @db.Decimal(5, 4)
+  edge        Decimal  @db.Decimal(5, 4)
+  confidence  Int
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+}
+
+model Bet {
+  id          String   @id @default(cuid())
+  userId      String
+  matchId     String
+  stake       Decimal  @db.Decimal(12, 2)
+  oddsTaken   Decimal  @db.Decimal(8, 3)
+  result      String?
+  placedAt    DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+}
+
+model B2BPartner {
+  id               String    @id @default(cuid())
+  name             String
+  contactEmail     String
+  apiKeyHash       String
+  apiKeyPrefix     String
+  apiKeyCreatedAt  DateTime  @default(now())
+  apiKeyRotatedAt  DateTime?
+  apiKeyRevokedAt  DateTime?
+  apiKeyExpiresAt  DateTime?
+  status           String    @default("active")
+  rateLimitPerMin  Int       @default(120)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
