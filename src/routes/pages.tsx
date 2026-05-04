@@ -3,9 +3,9 @@ import { calculateKelly } from '../hooks/useKelly';
 import { ApiKeyManager } from '../components/b2b/ApiKeyManager';
 import { CodeBlock } from '../components/b2b/CodeBlock';
 import { EdgeFeed } from '../components/edge/EdgeFeed';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { Input } from '../components/ui/input';
 
 export function LandingRoute() {
   const [probability, setProbability] = useState('0.54');
