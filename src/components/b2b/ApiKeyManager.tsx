@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Toast } from '../ui/Toast';
+
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Toast } from '../ui/toast';
 
 export function ApiKeyManager() {
   const [apiKey, setApiKey] = useState('pk_live_************************');
@@ -14,9 +15,11 @@ export function ApiKeyManager() {
 
   return (
     <Card title="API Key Manager">
-      <p className="mb-2 text-sm text-slate-300">Current key: <code>{apiKey}</code></p>
+      <p className="mb-2 text-sm text-slate-300">
+        Current key: <code>{apiKey}</code>
+      </p>
       <Button onClick={rotateKey}>Rotate API Key</Button>
-      {message ? <div className="mt-3"><Toast message={message} /></div> : null}
+      <Toast open={Boolean(message)} message={message} tone="success" />
     </Card>
   );
 }
