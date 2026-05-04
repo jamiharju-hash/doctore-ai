@@ -1,49 +1,11 @@
-@import './theme.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+:root {
+  color-scheme: light;
 }
 
 body {
-  min-height: 100vh;
-  line-height: 1.5;
-  text-rendering: optimizeLegibility;
-}
-
-code,
-kbd,
-samp,
-pre,
-.numeric,
-[data-numeric='true'] {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-}
-
-hr,
-.card,
-.panel,
-input,
-select,
-textarea,
-button {
-  border: 1px solid var(--border-subtle);
-}
-
-:focus {
-  outline: none;
-}
-
-:focus-visible {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--focus-ring-offset);
+  @apply bg-white text-slate-900 antialiased;
 }
