@@ -19,8 +19,27 @@ Doctore AI bridges the gap between recreational bettors and professional quant t
 - **Language:** TypeScript (strict mode)
 - **Database:** PostgreSQL via Prisma ORM
 - **Styling:** Tailwind CSS (design system tokens)
-- **Auth:** Clerk / NextAuth.js
+- **Auth:** Clerk
+- **Icons:** lucide-react
+- **Animation:** framer-motion
+- **Client state:** Zustand
 - **Math Engine:** Custom `useKelly` hook (Fractional Kelly v2)
+
+---
+
+## 🌱 Branching & Deployment
+
+GitHub is the source of truth for application code.
+
+| Branch | Purpose | Deployment |
+| --- | --- | --- |
+| `main` | Production-ready code | Vercel production deployment |
+| `develop` | Staging/integration branch | Vercel preview/staging deployment |
+
+### CI/CD
+- Vercel imports the repository and deploys automatically on every push.
+- Pull requests and pushes run GitHub Actions checks before merge.
+- Keep production changes flowing through `develop` → pull request → `main`.
 
 ---
 
@@ -35,6 +54,7 @@ Doctore AI bridges the gap between recreational bettors and professional quant t
 ---
 
 ## 🛠 Getting Started
+
 1. **Clone & install**
    ```bash
    git clone https://github.com/jamiharju-hash/doctore-ai.git
@@ -42,12 +62,19 @@ Doctore AI bridges the gap between recreational bettors and professional quant t
    npm install
    ```
 
-2. **Run development server**
+2. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. **Run development server**
    ```bash
    npm run dev
    ```
 
-3. **Run lint checks**
+4. **Run quality checks**
    ```bash
    npm run lint
+   npm run typecheck
+   npm run test
    ```
