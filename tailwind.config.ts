@@ -1,40 +1,29 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
-        navy: {
-          900: '#020617',
-          800: '#0F172A',
-          700: '#1E293B'
-        },
-        emerald: {
-          500: '#10B981'
-        },
-        blue: {
-          500: '#3B82F6'
-        },
-        rose: {
-          500: '#EF4444'
-        }
+        'navy-900': '#020617',
+        'navy-800': '#0F172A',
+        'navy-700': '#1E293B',
+        'emerald-500': '#10B981',
+        'blue-500': '#3B82F6',
+        'rose-500': '#EF4444',
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       borderRadius: {
         sm: '8px',
         md: '12px',
-        lg: '16px'
+        lg: '16px',
       },
-      fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        mono: ['var(--font-jetbrains-mono)', 'monospace']
-      },
-      borderWidth: {
-        subtle: '1px'
-      }
-    }
+    },
   },
-  plugins: []
-};
+  plugins: [],
+}
 
-export default config;
+export default config
