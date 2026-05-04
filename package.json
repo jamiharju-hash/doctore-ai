@@ -2,32 +2,36 @@
   "name": "doctore-ai",
   "version": "0.1.0",
   "private": true,
+  "description": "Next.js 15 application foundation for Doctore AI.",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbo",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "test": "vitest run",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.12.0",
     "@prisma/client": "^6.19.3",
-    "@tanstack/react-query": "^5.59.16",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",
-    "lucide-react": "^1.14.0",
+    "lucide-react": "^0.468.0",
     "next": "^15.0.0",
-    "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.13.3",
-    "tailwind-merge": "^3.5.0",
+    "tailwind-merge": "^2.5.5",
     "zod": "^3.25.76",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^22.10.1",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
@@ -35,8 +39,10 @@
     "eslint": "^9.15.0",
     "eslint-config-next": "^15.0.0",
     "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
     "prisma": "^6.19.3",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }
