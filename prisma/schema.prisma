@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String?
+  predictions Prediction[]
+  bets        Bet[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Match {
+  id          String       @id @default(cuid())
+  homeTeam    String
+  awayTeam    String
+  startsAt    DateTime
+  predictions Prediction[]
+  bets        Bet[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Prediction {
+  id         String   @id @default(cuid())
+  userId     String
+  matchId    String
+  odds       Float
+  confidence Float
+  edge       Float
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, matchId])
+}
+
+model Bet {
+  id        String   @id @default(cuid())
+  userId    String
+  matchId   String
+  stake     Float
+  odds      Float
+  status    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model B2BPartner {
+  id          String   @id @default(cuid())
+  name        String
+  apiKeyHash  String   @unique
+  apiKeyLabel String?
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
