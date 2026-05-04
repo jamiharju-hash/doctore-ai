@@ -1,0 +1,17 @@
+:root {
+  --bg: #020617;
+  --surface: #0f172a;
+  --surface-elevated: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+
+  --border-subtle: rgb(148 163 184 / 0.24);
+
+  --focus-ring-color: #3b82f6;
+  --focus-ring-offset: #020617;
+  --focus-ring-width: 2px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
