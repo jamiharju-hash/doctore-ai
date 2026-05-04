@@ -1,7 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./src/**/*.{ts,tsx}"],
+  content: [
+    "./src/app/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/lib/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -9,6 +13,7 @@ const config: Config = {
           900: "#020617", // Syvä tausta
           800: "#0F172A", // Kortit/Pinnat
           700: "#1E293B", // Borderit
+          600: "#334155", // Hoverit / korostukset
         },
         emerald: {
           500: "#10B981", // Edge / EV+
@@ -21,10 +26,12 @@ const config: Config = {
         },
       },
       fontFamily: {
-        mono: ["var(--font-jetbrains-mono)", "monospace"],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
     },
   },
   plugins: [],
 };
+
 export default config;

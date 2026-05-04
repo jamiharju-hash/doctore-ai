@@ -3,9 +3,6 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
-}
-
-body {
-  @apply bg-white text-slate-900 antialiased;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Menlo", "Monaco", "Consolas", monospace;
+  color-scheme: dark;
 }
