@@ -1,16 +1,38 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  email          String   @unique
+  bankroll       Float    @default(1000)
+  riskLevel      Float    @default(0.25)
+  apiKey         String?  @unique
+  bets           Bet[]
+  createdAt      DateTime @default(now())
+}
+
+model Prediction {
+  id          String   @id @default(uuid())
+  matchId     String   @unique
+  homeTeam    String
+  awayTeam    String
+  modelProb   Float
+  marketOdds  Float
+  edge        Float
+  commenceAt  DateTime
+}
+
+model Bet {
+  id        String   @id @default(uuid())
+  userId    String
+  stake     Float
+  odds      Float
+  status    String   @default("PENDING") // WON, LOST, VOID
+  user      User     @relation(fields: [userId], references: [id])
 }
