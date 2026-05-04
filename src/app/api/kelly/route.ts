@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { calculateKellyFraction } from '@/lib/math/kelly';
-import { ensureApiAuth } from '@/lib/supabase/server';
-import { kellyInputSchema } from '@/lib/validation/schemas';
+import { calculateKelly } from '../../../lib/math/kelly';
+import type { KellyApiResponse, KellyInput } from '../../../types';
 
-export async function POST(request: NextRequest) {
-  const auth = await ensureApiAuth();
-  if (auth.response) return auth.response;
+export async function POST(req: NextRequest) {
+  try {
+    const body = (await req.json()) as KellyInput;
+    const data = calculateKelly(body);
 
-  const body = await request.json();
-  const parsed = kellyInputSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json<KellyApiResponse>({ data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json<KellyApiResponse>({ error: message }, { status: 400 });
   }
-
-  const kellyFraction = calculateKellyFraction(parsed.data);
-
-  return NextResponse.json({ userId: auth.userId, kellyFraction });
 }

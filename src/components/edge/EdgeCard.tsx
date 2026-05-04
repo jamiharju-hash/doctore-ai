@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { calculateKelly } from '../../hooks/useKelly';
+import { calculateKelly } from '../../lib/math/kelly';
 import type { Match } from '../../lib/mockData';
 import { EdgeIndicator } from '../features/EdgeIndicator';
 import { Button } from '../ui/button';

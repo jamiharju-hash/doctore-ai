@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { calculateKelly } from '../hooks/useKelly';
+import { calculateKelly } from '../lib/math/kelly';
 import { ApiKeyManager } from '../components/b2b/ApiKeyManager';
 import { CodeBlock } from '../components/b2b/CodeBlock';
 import { EdgeFeed } from '../components/edge/EdgeFeed';
