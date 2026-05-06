@@ -1,80 +1,111 @@
-# 🩺 Doctore AI — Sports Betting Intelligence Platform
+# DOCTORE AI
 
-> **"Edge, not picks."**  
-> Doctore AI is a production-grade predictive analytics engine for MLB, identifying statistically mispriced odds using an advanced AI ensemble model.
+DOCTORE AI is an institutional-grade MLB decision filtering system.
 
----
+It is not a betting app, sportsbook clone, signal feed, casino-style dashboard or affiliate product. It is a probability, risk and elimination engine that exists to remove weak exposure before capital is committed.
 
-## 🚀 Overview
-Doctore AI bridges the gap between recreational bettors and professional quant teams. We provide a mathematical edge through real-time probability gaps and automated bankroll management using the Fractional Kelly Criterion.
+## Product doctrine
 
-### Key Value Props
-- **B2C:** Real-time Edge Feed, automated stake sizing, full performance transparency.
-- **B2B:** High-fidelity API for sportsbooks and media platforms (Data-as-a-Service).
+```txt
+Free shows the surface.
+PRO removes bad decisions.
+SHARP controls exposure.
+```
 
----
+The user should not calculate, compare manually or interpret tables during action. The system ranks internally and presents only the decisions that matter.
 
-## 🛠 Tech Stack
-- **Framework:** Next.js 15 (App Router)
-- **Language:** TypeScript (strict mode)
-- **Database:** PostgreSQL via Prisma ORM
-- **Styling:** Tailwind CSS (design system tokens)
-- **Auth:** Clerk
-- **Icons:** lucide-react
-- **Animation:** framer-motion
-- **Client state:** Zustand
-- **Math Engine:** Custom `useKelly` hook (Fractional Kelly v2)
+## Interface doctrine
 
----
+```txt
+Decision
+Confidence
+Risk
+Sizing
+Reason
+```
 
-## 🌱 Branching & Deployment
+Mandatory rules:
 
-GitHub is the source of truth for application code.
+- Maximum visible decisions: 3.
+- Green is only for validated opportunity, positive edge or confirmed acceptance.
+- Red is only for rejected exposure, negative EV, warnings or invalid states.
+- Borders before shadows.
+- Numbers before explanation.
+- No decorative icons.
+- No casino, sportsbook, hype or affiliate language.
+- No explicit upgrade pressure.
 
-| Branch | Purpose | Deployment |
-| --- | --- | --- |
-| `main` | Production-ready code | Vercel production deployment |
-| `develop` | Staging/integration branch | Vercel preview/staging deployment |
+## Technical stack
 
-### CI/CD
-- Vercel imports the repository and deploys automatically on every push.
-- Pull requests and pushes run GitHub Actions checks before merge.
-- Keep production changes flowing through `develop` → pull request → `main`.
+- Next.js 15 App Router
+- TypeScript strict mode
+- Tailwind CSS
+- TanStack Query for server state
+- Zustand for scoped client state
+- Zod for validation
+- Firebase Auth
+- Firebase custom claims
+- Firestore
+- Firebase Admin for server-side access
+- Vercel deployment
+- Python/FastAPI/XGBoost sidecar for ML services
 
----
+## Security model
 
-## 📂 Repository Structure
-- `src/app/` — Next.js routes and layouts.
-- `src/components/ui/` — P0 design system components (A11y compliant).
-- `src/components/features/` — Business logic components (EdgeCards, calculators).
-- `src/hooks/` — Core logic (`useKelly`, `useOddsData`).
-- `src/lib/` — Shared utilities and API clients.
-- `prisma/` — Database schema and migrations.
+Protected product data is server-only.
 
----
+Client components must call typed Route Handlers. Route Handlers verify Firebase session cookies, check role and plan, validate all input/output with Zod and use Firebase Admin for Firestore access.
 
-## 🛠 Getting Started
+UI visibility is never authorization.
 
-1. **Clone & install**
-   ```bash
-   git clone https://github.com/jamiharju-hash/doctore-ai.git
-   cd doctore-ai
-   npm install
-   ```
+## Canonical roles
 
-2. **Configure environment**
-   ```bash
-   cp .env.example .env.local
-   ```
+| Role | Scope |
+| --- | --- |
+| `admin` | Full system control |
+| `project_manager` | Assigned-client onboarding flow only |
+| `client` | Own decision system only |
 
-3. **Run development server**
-   ```bash
-   npm run dev
-   ```
+Canonical mapping:
 
-4. **Run quality checks**
-   ```bash
-   npm run lint
-   npm run typecheck
-   npm run test
-   ```
+```txt
+Jami = admin
+Ville = project_manager
+Client = client
+```
+
+## Phase 1 scope
+
+- Auth
+- App shell
+- Dashboard
+- Signals
+- Signal detail
+- Game log
+- Settings
+
+Phase 2 starts only after Phase 1 is complete:
+
+1. Live odds
+2. Repricing
+3. Notifications
+4. Multi-sport
+5. Leaderboard/social
+
+Social features must not outrank the core decision engine.
+
+## Development
+
+```bash
+npm install
+npm run dev
+npm run lint
+npm run typecheck
+npm run test
+```
+
+## Build standard
+
+Build DOCTORE AI like an institutional-grade fintech decision system.
+
+Everything else is interface.
