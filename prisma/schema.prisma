@@ -10,6 +10,8 @@ generator client {
 enum Tier {
   FREE
   PRO
+  SHARP
+  INFRA
   ENTERPRISE
 }
 
@@ -17,6 +19,7 @@ enum BetStatus {
   PENDING
   WON
   LOST
+  PUSH
   VOID
   CASHED_OUT
 }
@@ -27,29 +30,90 @@ enum Currency {
   GBP
 }
 
+enum MarketPhase {
+  OPEN
+  ENTRY
+  CLOSE
+  INTERMEDIATE
+}
+
+enum DecisionState {
+  ACCEPT
+  REJECT
+  WAIT
+}
+
+enum ModelValidationType {
+  PERFORMANCE_DRIVEN
+  CONDITION_DRIVEN
+}
+
+enum ModelValidationStrategy {
+  CLV_N_GT_100
+  CONDITION_SUCCESS_RATE_FAST_TRACK
+}
+
+enum AuditEntityType {
+  USER
+  BANKROLL
+  BET
+  MARKET_SNAPSHOT
+  MODEL_PREDICTION
+  DECISION_RECORD
+  CLV_RECORD
+  MARKET_PROFILE
+  SYSTEM_CONFIG
+}
+
+enum AuditEventType {
+  RISK_CONFIG_CHANGED
+  BANKROLL_ADJUSTED
+  BET_IMPORTED
+  BET_CREATED
+  BET_SETTLED
+  BET_VOIDED
+  CLV_CALCULATED
+  CLV_OVERRIDDEN
+  MARKET_APPROVAL_CHANGED
+  PLAN_CHANGED
+  ROLE_CHANGED
+  MODEL_ACTIVATED
+  MODEL_RETIRED
+}
+
 model User {
-  id                   String    @id @default(uuid())
-  email                String    @unique
+  id                   String           @id @default(uuid())
+  email                String           @unique
   displayName          String?
-  tier                 Tier      @default(FREE)
-  defaultKellyFraction Decimal   @default(0.25) @db.Decimal(5, 4)
+  tier                 Tier             @default(FREE)
+  defaultKellyFraction Decimal          @default(0.25) @db.Decimal(5, 4)
   bets                 Bet[]
   bankroll             Bankroll?
   apiKeys              ApiKey[]
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  decisionRecords      DecisionRecord[]
+  clvRecords           ClvRecord[]
+  auditEvents          AuditEvent[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   @@index([tier])
 }
 
 model Bankroll {
-  id         String    @id @default(uuid())
-  userId     String    @unique
-  amount     Decimal   @db.Decimal(14, 2)
-  currency   Currency  @default(USD)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(uuid())
+  userId             String    @unique
+  amount             Decimal   @db.Decimal(14, 2)
+  startingAmount     Decimal?  @db.Decimal(14, 2)
+  currency           Currency  @default(USD)
+  maxRiskPerBetPct   Decimal   @default(0.01) @db.Decimal(6, 5)
+  maxDailyRiskPct    Decimal   @default(0.03) @db.Decimal(6, 5)
+  maxOpenExposurePct Decimal   @default(0.06) @db.Decimal(6, 5)
+  kellyMultiplier    Decimal   @default(0.25) @db.Decimal(5, 4)
+  openExposure       Decimal   @default(0) @db.Decimal(14, 2)
+  dailyRiskUsed      Decimal   @default(0) @db.Decimal(14, 2)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([currency])
 }
@@ -81,20 +145,185 @@ model Prediction {
 }
 
 model Bet {
-  id         String     @id @default(uuid())
-  userId     String
-  stake      Decimal    @db.Decimal(14, 2)
-  odds       Decimal    @db.Decimal(10, 4)
-  status     BetStatus  @default(PENDING)
-  currency   Currency   @default(USD)
-  placedAt   DateTime   @default(now())
-  settledAt  DateTime?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String           @id @default(uuid())
+  userId             String
+  sport              String           @default("MLB")
+  league             String           @default("MLB")
+  gameId             String?
+  eventName          String?
+  market             String           @default("unknown")
+  selection          String           @default("unknown")
+  bookmaker          String           @default("unknown")
+  stake              Decimal          @db.Decimal(14, 2)
+  odds               Decimal          @db.Decimal(10, 4)
+  modelProbability   Decimal?         @db.Decimal(8, 6)
+  fairOdds           Decimal?         @db.Decimal(10, 4)
+  edgePct            Decimal?         @db.Decimal(8, 4)
+  kellyFraction      Decimal?         @db.Decimal(8, 6)
+  kellyMultiplier    Decimal          @default(0.25) @db.Decimal(5, 4)
+  recommendedStake   Decimal?         @db.Decimal(14, 2)
+  closingOdds        Decimal?         @db.Decimal(10, 4)
+  clvPct             Decimal?         @db.Decimal(8, 4)
+  beatClose          Boolean?
+  profitLoss         Decimal?         @db.Decimal(14, 2)
+  status             BetStatus        @default(PENDING)
+  currency           Currency         @default(USD)
+  decisionId         String?
+  entrySnapshotId    String?
+  closingSnapshotId  String?
+  importFingerprint  String?          @unique
+  rawImportRow       Json?
+  placedAt           DateTime         @default(now())
+  settledAt          DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  decisionRecords    DecisionRecord[]
+  clvRecord          ClvRecord?
 
   @@index([userId])
   @@index([status])
   @@index([userId, status])
   @@index([userId, placedAt(sort: Desc)])
+  @@index([sport, league, market])
+  @@index([bookmaker])
+  @@index([clvPct])
+}
+
+model MarketSnapshot {
+  id                 String      @id @default(uuid())
+  sport              String
+  league             String
+  gameId             String?
+  eventName          String?
+  market             String
+  selection          String
+  phase              MarketPhase
+  bookmaker          String
+  oddsDecimal        Decimal     @db.Decimal(10, 4)
+  impliedProbability Decimal     @db.Decimal(8, 6)
+  source             String
+  collectedAt        DateTime
+  createdAt          DateTime    @default(now())
+
+  @@index([sport, league, market])
+  @@index([gameId])
+  @@index([phase])
+  @@index([collectedAt])
+}
+
+model ModelPrediction {
+  id                    String                  @id @default(uuid())
+  modelVersionId        String?
+  modelName             String
+  validationType        ModelValidationType
+  validationStrategy    ModelValidationStrategy
+  sport                 String
+  league                String
+  gameId                String?
+  eventName             String?
+  market                String
+  selection             String
+  probability           Decimal                 @db.Decimal(8, 6)
+  fairOddsDecimal       Decimal                 @db.Decimal(10, 4)
+  confidenceScore       Decimal?                @db.Decimal(6, 3)
+  featureBreakdown      Json?
+  generatedAt           DateTime
+  createdAt             DateTime                @default(now())
+
+  @@index([modelName])
+  @@index([modelVersionId])
+  @@index([validationType])
+  @@index([validationStrategy])
+  @@index([sport, league, market])
+  @@index([gameId])
+  @@index([generatedAt])
+}
+
+model DecisionRecord {
+  id                 String        @id @default(uuid())
+  userId             String
+  betId              String?
+  gameId             String?
+  market             String
+  selection          String
+  decision           DecisionState
+  modelProbability   Decimal?      @db.Decimal(8, 6)
+  marketOddsDecimal  Decimal?      @db.Decimal(10, 4)
+  edgePct            Decimal?      @db.Decimal(8, 4)
+  confidenceScore    Decimal?      @db.Decimal(6, 3)
+  stake              Decimal?      @db.Decimal(14, 2)
+  riskPct            Decimal?      @db.Decimal(8, 4)
+  reasons            Json
+  expiresAt          DateTime?
+  createdAt          DateTime      @default(now())
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bet                Bet?          @relation(fields: [betId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([decision])
+  @@index([gameId])
+  @@index([market])
+}
+
+model ClvRecord {
+  id                         String   @id @default(uuid())
+  betId                      String   @unique
+  userId                     String
+  entryOddsDecimal           Decimal  @db.Decimal(10, 4)
+  closingOddsDecimal         Decimal  @db.Decimal(10, 4)
+  entryImpliedProbability    Decimal  @db.Decimal(8, 6)
+  closingImpliedProbability  Decimal  @db.Decimal(8, 6)
+  clvPct                     Decimal  @db.Decimal(8, 4)
+  beatClose                  Boolean
+  calculatedAt               DateTime
+  createdAt                  DateTime @default(now())
+  bet                        Bet      @relation(fields: [betId], references: [id], onDelete: Cascade)
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([clvPct])
+  @@index([beatClose])
+  @@index([calculatedAt])
+}
+
+model MarketProfile {
+  id                 String   @id @default(uuid())
+  sport              String
+  league             String
+  market             String
+  segmentKey         String
+  sampleSize         Int      @default(0)
+  betCount           Int      @default(0)
+  avgClvPct          Decimal? @db.Decimal(8, 4)
+  clvHitRatePct      Decimal? @db.Decimal(8, 4)
+  roiPct             Decimal? @db.Decimal(8, 4)
+  winRatePct         Decimal? @db.Decimal(8, 4)
+  avgEdgePct         Decimal? @db.Decimal(8, 4)
+  avgOddsDecimal     Decimal? @db.Decimal(10, 4)
+  profitLoss         Decimal  @default(0) @db.Decimal(14, 2)
+  isApproved         Boolean  @default(false)
+  rejectionReason    String?
+  updatedAt          DateTime @updatedAt
+
+  @@unique([sport, league, market, segmentKey])
+  @@index([isApproved])
+  @@index([sampleSize])
+}
+
+model AuditEvent {
+  id          String          @id @default(uuid())
+  userId      String?
+  eventType   AuditEventType
+  entityType  AuditEntityType
+  entityId    String
+  before      Json?
+  after       Json?
+  createdAt   DateTime        @default(now())
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
