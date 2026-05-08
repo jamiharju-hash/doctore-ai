@@ -17,11 +17,18 @@ export interface KellyInput {
 export interface KellyResult {
   impliedProbability: number;
   edge: number;
+  expectedValuePct: number;
   fullKellyPct: number;
   fractionalKellyPct: number;
   recommendedStake: number;
   cappedStake: number;
   isBettable: boolean;
+  warnings: string[];
+}
+
+export interface KellyApiResponse {
+  data?: KellyResult;
+  error?: string;
 }
 
 export interface ExpectedValueInput {
