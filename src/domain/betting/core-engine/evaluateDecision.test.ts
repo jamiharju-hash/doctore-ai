@@ -60,7 +60,7 @@ describe('evaluateDecision', () => {
     });
   });
 
-  it('returns WAIT when the market profile is not approved even if the bet has positive edge', () => {
+  it('returns WAIT when the market profile is the only blocker', () => {
     const output = evaluateDecision({
       ...baseInput,
       approval: {
@@ -72,7 +72,25 @@ describe('evaluateDecision', () => {
 
     expect(output.decision).toBe('WAIT');
     expect(output.stake).toBe(0);
+    expect(output.reasons).toEqual(['MARKET_NOT_APPROVED']);
+  });
+
+  it('returns REJECT when market is unapproved and the price has no edge', () => {
+    const output = evaluateDecision({
+      ...baseInput,
+      probability: {
+        modelProbability: 0.49
+      },
+      approval: {
+        isApproved: false,
+        profileId: 'profile_test_001'
+      }
+    });
+
+    expect(output.decision).toBe('REJECT');
+    expect(output.stake).toBe(0);
     expect(output.reasons).toContain('MARKET_NOT_APPROVED');
+    expect(output.reasons).toContain('NEGATIVE_OR_ZERO_EDGE');
   });
 
   it('returns REJECT when edge is below the configured threshold', () => {
