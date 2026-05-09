@@ -1,47 +1,53 @@
-import type { KellyInput, KellyResult } from '../../types';
+import { calculateKellySizing } from '@/domain/betting/core-engine';
+import type { KellyInput, KellyResult } from '@/types';
 
-export const DEFAULT_MULTIPLIER = 0.25;
-export const EDGE_THRESHOLD = 0.025;
-
-const isFinitePositiveNumber = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
-
-const isProbability = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0 && value < 1;
+const DEFAULT_KELLY_FRACTION = 0.25;
+const DEFAULT_MAX_STAKE_PCT = 0.05;
 
 export function calculateKelly(input: KellyInput): KellyResult {
-  const { probability, odds, multiplier = DEFAULT_MULTIPLIER } = input;
+  const sizing = calculateKellySizing({
+    bankroll: input.bankroll,
+    decimalOdds: input.decimalOdds,
+    modelProbability: input.modelProbability,
+    kellyFraction: input.kellyFraction ?? DEFAULT_KELLY_FRACTION,
+    maxStakePct: input.maxStakePct ?? DEFAULT_MAX_STAKE_PCT
+  });
+
   const warnings: string[] = [];
 
-  if (!isProbability(probability)) {
-    throw new Error('Probability must be a finite number between 0 and 1 (exclusive).');
+  if (sizing.edgePct <= 0) {
+    warnings.push('Negative or zero edge detected. Stake clamped to zero.');
   }
 
-  if (!isFinitePositiveNumber(odds) || odds <= 1) {
-    throw new Error('Odds must be a finite number greater than 1.');
+  if (sizing.cappedStake < sizing.uncappedStake) {
+    warnings.push('Stake capped by bankroll risk limits.');
   }
-
-  if (!isFinitePositiveNumber(multiplier) || multiplier > 1) {
-    throw new Error('Multiplier must be a finite number between 0 and 1.');
-  }
-
-  const b = odds - 1;
-  const baseFraction = (probability * (b + 1) - 1) / b;
-  const edge = probability - 1 / odds;
-  const isPositiveEV = edge > 0;
-
-  if (!isPositiveEV) {
-    warnings.push('Negative EV detected. Stake clamped to zero.');
-  }
-
-  const fraction = Math.max(0, baseFraction * multiplier);
 
   return {
-    fraction,
-    edge,
-    shouldBet: isPositiveEV && edge > EDGE_THRESHOLD,
-    multiplier,
-    isPositiveEV,
-    warnings,
+    impliedProbability: sizing.impliedProbability,
+    edge: sizing.edgePct,
+    expectedValuePct: sizing.expectedValuePct,
+    fullKellyPct: sizing.fullKellyPct,
+    fractionalKellyPct: sizing.fractionalKellyPct,
+    recommendedStake: sizing.uncappedStake,
+    cappedStake: sizing.cappedStake,
+    isBettable: sizing.edgePct > 0 && sizing.cappedStake > 0,
+    warnings
   };
 }
+
+export const calculateKellyFraction = (input: {
+  probability: number;
+  decimalOdds: number;
+  kellyFraction?: number;
+}): number => {
+  const sizing = calculateKellySizing({
+    bankroll: 1,
+    decimalOdds: input.decimalOdds,
+    modelProbability: input.probability,
+    kellyFraction: input.kellyFraction ?? DEFAULT_KELLY_FRACTION,
+    maxStakePct: 1
+  });
+
+  return sizing.fractionalKellyPct;
+};

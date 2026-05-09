@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { calculateKelly } from '../../../lib/math/kelly';
-import type { KellyApiResponse, KellyInput } from '../../../types';
+import { calculateKelly } from '@/lib/math/kelly';
+import { kellyInputSchema } from '@/lib/validation/schemas';
+import type { KellyApiResponse } from '@/types';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as KellyInput;
-    const data = calculateKelly(body);
+    const body: unknown = await req.json();
+    const parsed = kellyInputSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json<KellyApiResponse>(
+        { error: 'Invalid Kelly input contract.' },
+        { status: 400 }
+      );
+    }
+
+    const data = calculateKelly(parsed.data);
 
     return NextResponse.json<KellyApiResponse>({ data });
   } catch (error) {
