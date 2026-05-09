@@ -35,6 +35,12 @@ const reject = (
   audit: [buildAudit(reason, message, value)]
 });
 
+const resolveDecision = (reasons: DecisionReason[]): 'ACCEPT' | 'REJECT' | 'WAIT' => {
+  if (reasons.length === 0) return 'ACCEPT';
+  if (reasons.length === 1 && reasons[0] === 'MARKET_NOT_APPROVED') return 'WAIT';
+  return 'REJECT';
+};
+
 export const evaluateDecision = (input: DecisionInput): DecisionOutput => {
   const bankroll = input.bankroll;
   const minStakeAmount = bankroll.minStake ?? 0;
@@ -98,7 +104,7 @@ export const evaluateDecision = (input: DecisionInput): DecisionOutput => {
   };
 
   const audit: DecisionAuditEntry[] = [
-    buildAudit('ACCEPTED', 'Decision engine evaluated canonical inputs.', input.decisionId)
+    buildAudit('EVALUATED', 'Decision engine evaluated canonical inputs.', input.decisionId)
   ];
 
   const reasons: DecisionReason[] = [];
@@ -138,7 +144,7 @@ export const evaluateDecision = (input: DecisionInput): DecisionOutput => {
     audit.push(buildAudit('STAKE_BELOW_MINIMUM', 'Calculated stake is below minimum stake.', sizing.cappedStake));
   }
 
-  const decision = reasons.length === 0 ? 'ACCEPT' : reasons.includes('MARKET_NOT_APPROVED') ? 'WAIT' : 'REJECT';
+  const decision = resolveDecision(reasons);
 
   if (decision === 'ACCEPT') {
     audit.push(buildAudit('ACCEPTED', 'All risk, edge, Kelly, exposure, and market approval checks passed.', true));
