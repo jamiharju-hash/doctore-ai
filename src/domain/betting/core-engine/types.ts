@@ -13,6 +13,7 @@ export type DecisionReason =
   | 'NO_AVAILABLE_BANKROLL'
   | 'EXPOSURE_CAP_REACHED'
   | 'STAKE_BELOW_MINIMUM'
+  | 'EVALUATED'
   | 'ACCEPTED';
 
 export interface BankrollState {
