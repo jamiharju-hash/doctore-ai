@@ -78,3 +78,8 @@ GitHub is the source of truth for application code.
    npm run typecheck
    npm run test
    ```
+
+## 📋 Foundation Execution Docs
+
+- `docs/prd-foundation-qa.md` — foundation QA findings, spec gap fixes, and locked implementation boundaries.
+- `docs/foundation-coding-prompts.md` — bite-size implementation prompts sequenced for safe delivery.
