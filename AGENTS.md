@@ -1,278 +1,229 @@
-# Doctore AI — Agent Skill Profiles
+# DOCTORE AI — Agent Instructions
 
-This file defines operational instructions, coding standards, and architecture constraints for AI coding agents working in the Doctore AI codebase.
+This file defines the mandatory product, architecture, security, and UI constraints for all AI coding agents working in this repository.
 
-Doctore AI is a quant terminal for sports betting markets. It is analytical infrastructure for model-market comparison, positive expected value discovery, fractional Kelly stake sizing, bankroll protection, and controlled B2B API access.
+## Product identity
 
-Core message:
+DOCTORE AI is a Betting Operations System.
 
-> We find the edge. You execute the strategy.
+It is not:
 
-## Global rules
+- a picks app
+- a sportsbook
+- a casino product
+- an affiliate product
+- a social betting product
+- a generic dashboard
+- a prediction feed optimized for more action
 
-1. Preserve Doctore AI as a quantitative decision terminal, not a tipster service or gambling entertainment product.
-2. Keep all product language probabilistic. Use expected value, model probability, implied probability, variance, calibration, drawdown, bankroll, and execution discipline.
-3. Never claim guaranteed profit, guaranteed returns, or risk-free betting.
-4. Prefer small, reviewable changes over large unstructured rewrites.
-5. Use strict TypeScript.
-6. Keep business logic in `src/lib/`.
-7. Keep API handlers in `src/app/api/`.
-8. Keep route UI in `src/app/` and reusable UI in `src/components/`.
-9. Keep file paths Linux-compatible and case-correct.
-10. Document any change that affects model probability, EV, Kelly sizing, exposure caps, bankroll logic, or B2B API access.
+Core doctrine:
 
-## Frontend Agent Skill
+> DOCTORE AI helps systematic bettors avoid bad exposure before capital is committed.
 
-### Scope
+Every betting decision must pass through this controlled decision contract:
 
-Frontend agents own the Next.js 15, React 19, Tailwind CSS, UI composition, responsiveness, and accessibility layer.
-
-### Responsibilities
-
-- Build the quant terminal interface: signal feed, signal detail, Kelly calculator, bankroll tracking, pricing, API docs, and onboarding flows.
-- Use React server components by default.
-- Use client components only when browser state, effects, forms, or event handlers require them.
-- Maintain a premium, restrained, analytical visual style.
-- Meet WCAG 2.2 AA accessibility standards.
-- Keep the product mobile-first but desktop-ready.
-
-### Coding standards
-
-- Use semantic HTML first.
-- Every interactive control must be keyboard accessible.
-- Buttons must be `<button>` elements unless navigation requires links.
-- Inputs must have visible labels or accessible names.
-- Do not rely on color alone to communicate status.
-- Preserve visible focus states.
-- Maintain high contrast on dark backgrounds.
-- Use Tailwind utilities consistently.
-- Keep components small and composable.
-
-### File naming
-
-Prefer lowercase, hyphen-separated filenames:
-
-```text
-src/components/signal-card.tsx
-src/components/metric-card.tsx
-src/components/pricing-card.tsx
-src/app/dashboard/page.tsx
-src/app/kelly/page.tsx
+```txt
+Ledger → Math Core → Bankroll → Risk Check → CLV → Decision Engine → ACCEPT / REJECT / WAIT
 ```
 
-Avoid new uppercase component filenames unless matching an existing pattern.
+The product exists to improve decision quality, bankroll discipline, stake sizing, exposure control, CLV tracking, and auditability. It must never promise profit or guaranteed outcomes.
 
-### Forbidden frontend changes
+## Required user experience
 
-- Casino imagery, slot machines, roulette wheels, poker chips, or neon gambling aesthetics.
-- Fake testimonials or claims implying certain profit.
-- Inaccessible custom controls.
-- UI that hides risk, variance, or bankroll constraints.
+The user should not manually calculate, compare raw tables, or interpret probability screens during action.
 
-## Backend Agent Skill
+The user should only receive one operational decision:
 
-### Scope
-
-Backend agents own API routes, validation, mathematical correctness, Prisma access, Supabase compatibility, security controls, and data integrity.
-
-### Responsibilities
-
-- Implement positive EV, implied probability, fractional Kelly, bankroll, bet logging, signal ranking, and B2B API logic.
-- Validate every external input with Zod or equivalent explicit validation.
-- Keep calculation functions pure and testable.
-- Keep route handlers thin; place reusable logic in `src/lib/`.
-- Use Prisma efficiently: select only required fields, avoid unbounded queries, and paginate list endpoints.
-- Design Supabase compatibility with row-level security and tenant isolation in mind.
-- Protect B2B endpoints with hashed API keys, rate limits, and audit-friendly behavior.
-
-### Mathematical standards
-
-Use decimal odds as the canonical internal odds format unless a route explicitly converts from another format.
-
-Implied probability:
-
-```text
-impliedProbability = 1 / decimalOdds
+```txt
+ACCEPT
+REJECT
+WAIT
 ```
 
-Expected value:
+Maximum visible decision cards: 3.
 
-```text
-ev = modelProbability * decimalOdds - 1
+No raw odds-table decision workflow is allowed in the primary UI.
+
+## Technical stack target
+
+Locked implementation target:
+
+- Next.js App Router
+- TypeScript
+- TailwindCSS
+- shadcn/ui where useful
+- Firebase Auth
+- Firebase custom claims
+- Firestore
+- Firebase Admin
+- Next.js Route Handlers
+- Zod
+- TanStack Query for client server-state
+- Zustand only for local UI state when needed
+- Vitest / Testing Library / Playwright
+
+Do not introduce or expand Supabase, Clerk, Prisma, or PostgreSQL as the primary DOCTORE AI application stack unless a written architecture decision explicitly reverses the Firebase/Firestore lock.
+
+## Architecture rules
+
+- Server Components are the default.
+- Firestore access is server-only for protected product data.
+- Client components call typed API endpoints.
+- All request, response, environment, and persisted data must be validated with Zod.
+- Separate persistence models, DTOs, and UI view models when shapes differ.
+- Do not place domain logic in page or layout shells.
+- Named exports only except framework-required files.
+- Do not use `any` without a same-line justification.
+- Do not use `useEffect` for data fetching.
+- Do not calculate betting math inside UI components.
+- Use semantic interactive elements, not clickable `div` elements.
+
+## Security and access enforcement
+
+UI visibility is never authorization.
+
+Access must be enforced at four layers:
+
+1. Firebase Auth custom claims
+2. Firestore security rules
+3. Server-side Route Handler authorization
+4. UI visibility
+
+Canonical roles:
+
+```txt
+admin
+project_manager
+client
 ```
 
-Kelly sizing:
+Canonical plans:
 
-```text
-b = decimalOdds - 1
-p = modelProbability
-q = 1 - p
-fullKelly = (b * p - q) / b
-fractionalKelly = max(0, fullKelly) * kellyFraction
+```txt
+free
+pro
+sharp
+infra
 ```
 
-Stake cap:
+Rules:
 
-```text
-stake = min(bankroll * fractionalKelly, bankroll * maxStakePct)
+- Protected Firestore reads and writes must go through server endpoints.
+- Protected data must not be accessed with the client-side Firestore SDK.
+- API endpoints must verify Firebase session cookies.
+- API endpoints must check role and plan before returning protected data.
+- Firestore rules must reject unauthorized direct access.
+- Role permissions and plan limits must exist in code, not only copy.
+- Sensitive mutations must write audit events.
+
+Audit is required for:
+
+- bet creation
+- bet settlement
+- bankroll correction
+- risk config change
+- manual CLV override
+- market approval override
+- plan change
+- role change
+- model activation or retirement
+
+## Product language constraints
+
+Use:
+
+- model probability
+- implied probability
+- fair odds
+- edge
+- expected value
+- CLV
+- Fractional Kelly
+- bankroll
+- exposure
+- decision quality
+- process quality
+- audit trail
+
+Do not use:
+
+- lock
+- sure bet
+- guaranteed profit
+- risk-free
+- premium picks
+- hot picks
+- best bets today
+- beat the books
+- unlock winners
+
+## UI doctrine
+
+The interface must feel like institutional decision infrastructure:
+
+- dark
+- clinical
+- precise
+- restrained
+- number-first
+- decision-first
+- border-led rather than shadow-led
+
+Use green only for validated opportunity or confirmed acceptance.
+Use red only for rejected exposure, invalid state, negative EV, or warning.
+Do not use casino colors, decorative gradients, hype copy, emojis, sports-team-logo decoration, or sportsbook card styling.
+
+## Plan behavior
+
+Plan limitations must feel like system state, not sales pressure.
+
+Use:
+
+```txt
+Filter inactive
+Sizing unavailable
+Exposure layer inactive
+PRO keeps the filter active
+SHARP controls exposure
 ```
 
-### Validation rules
+Do not write:
 
-- `bankroll > 0`
-- `decimalOdds > 1`
-- `0 < modelProbability < 1`
-- `0 < kellyFraction <= 1`
-- `0 < maxStakePct <= 100`
-- Dates must be ISO-compatible.
-- API keys must never be stored in plaintext.
-- API errors must not leak whether a specific key exists.
-
-### Security standards
-
-- Hash API keys before persistence.
-- Use constant-time comparison where practical.
-- Add rate limits to protected routes.
-- Never expose secrets to client components.
-- Use `NEXT_PUBLIC_` only for values safe to expose publicly.
-- Do not log raw API keys, tokens, private bankroll details, or personal information.
-
-### Prisma standards
-
-- Avoid `findMany` without `take` on public or protected list endpoints.
-- Use indexes for frequent filters: user, status, sport, market, createdAt, startsAt.
-- Prefer transactions for bet settlement and bankroll updates.
-- Avoid floating-point storage for money. Use Decimal for bankroll, stake, odds where appropriate.
-
-### Supabase / RLS constraints
-
-- Treat user-owned rows as private by default.
-- Any Supabase table design must include ownership or tenant scoping.
-- RLS policies must deny by default and allow only explicit access patterns.
-- B2B tenants must not share data unless deliberately configured.
-
-## Review & Docs Agent Skill
-
-### Scope
-
-Review agents act as QA, architecture guardrails, documentation maintainers, and release-readiness reviewers.
-
-### Responsibilities
-
-- Review security, correctness, architecture, accessibility, and operational readiness.
-- Verify mathematical formulas and edge-case behavior.
-- Check WCAG 2.2 AA expectations.
-- Check Linux path compatibility and case-sensitive imports.
-- Ensure docs match implementation.
-- Reject vague claims, guaranteed-return wording, and hype language.
-
-### Standard review report
-
-Use this format:
-
-```md
-# Review report
-
-## Summary
-
-One to three sentences on what changed and whether it is safe to merge.
-
-## Blocking issues
-
-- [ ] Issue, file, line, impact, required fix.
-
-## Non-blocking issues
-
-- [ ] Issue, file, line, impact, recommended fix.
-
-## Security
-
-- API key handling:
-- Auth / authorization:
-- Data leakage risk:
-- Logging risk:
-
-## Mathematical correctness
-
-- Implied probability:
-- EV calculation:
-- Kelly sizing:
-- Stake caps:
-- Edge cases:
-
-## Accessibility
-
-- Keyboard access:
-- Labels and names:
-- Contrast:
-- Focus states:
-- Reduced-motion considerations:
-
-## Architecture
-
-- Route boundaries:
-- Business logic placement:
-- Database access:
-- Scalability:
-
-## Documentation impact
-
-- README:
-- Environment variables:
-- API examples:
-- Migration notes:
-
-## Verdict
-
-Approve / request changes / needs manual test.
+```txt
+Upgrade now
+Unlock premium picks
+Subscribe to win
+Get better bets
 ```
 
-### Documentation standards
+## MVP scope
 
-- Keep setup instructions executable.
-- Document every required environment variable.
-- Include curl examples for public and protected API routes.
-- Mark demo data clearly as demo data.
-- Keep betting risk, jurisdiction, and no-guaranteed-return disclaimers visible.
+Phase 1 starts with audited betting infrastructure:
 
-## Architecture boundaries
+```txt
+Ledger → Math Core → Bankroll → Risk Check → CLV → Decision Engine → ACCEPT / REJECT / WAIT
+```
 
-### Allowed
+Phase 1 excludes:
 
-- Next.js App Router pages and API routes.
-- React server components by default.
-- Tailwind CSS utility styling.
-- Prisma for database access.
-- Zod for input validation.
-- Supabase-compatible schema decisions.
-- Protected B2B API endpoints.
-
-### Requires explicit review
-
-- New external data providers.
-- Real-money execution integrations.
-- Automated bet placement.
-- User identity and subscription billing changes.
-- Model changes that affect probability, EV, or stake sizing.
-- Changes to bankroll risk logic.
-
-### Forbidden without compliance review
-
-- Guaranteed profit language.
-- Automated real-money betting execution.
-- Hidden affiliate routing.
-- Unclear odds sourcing.
-- Storing plaintext API keys.
-- Exposing private user betting history across tenants.
+- automated bet placement
+- social features
+- leaderboards
+- live signals before ledger and CLV readiness
+- public pick pages
+- sportsbook-like feed UX
+- complex dashboards before the system of record
 
 ## Definition of done
 
 A change is complete only when:
 
-1. It builds successfully.
+1. Product doctrine is preserved.
 2. TypeScript passes.
-3. Public UI is keyboard accessible.
-4. API inputs are validated.
-5. Mathematical behavior is documented when changed.
-6. Security-sensitive routes avoid secret leakage.
-7. README or docs are updated when setup, API, or environment behavior changes.
+3. Lint passes.
+4. Relevant tests pass.
+5. Runtime inputs and outputs are Zod-validated.
+6. Protected data access is server-only.
+7. Sensitive mutations create audit events.
+8. No picks-app, sportsbook, casino, or hype behavior is introduced.
+9. Documentation is updated when contracts, setup, API behavior, or environment variables change.
